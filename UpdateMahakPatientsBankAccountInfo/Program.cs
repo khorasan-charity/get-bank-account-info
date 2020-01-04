@@ -11,7 +11,6 @@ using System.Net.Mime;
 using System.Text.RegularExpressions;
 using Dapper;
 using HtmlAgilityPack;
-using RestSharp;
 
 namespace UpdateMahakPatientsBankAccountInfo
 {
@@ -21,10 +20,11 @@ namespace UpdateMahakPatientsBankAccountInfo
         {
             using var conn =
                 new OdbcConnection(
-                    "Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=C:\\Users\\Majid\\Desktop\\mahak.accdb;");
+                    "Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=.\\محک.accdb;");
             conn.Open();
             var handler = new HttpClientHandler() {UseCookies = true};
             using var httpClient = new HttpClient(handler);
+            var fields = "[File_No], [Name_First] + ' ' + [Name_Last], [Melli_Acc_No], [Melli_Acc_Owner_Name]";
             httpClient.DefaultRequestHeaders.Add("User-Agent",
                 "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:x.x.x) Gecko/20041107 Firefox/x.x");
             const string url = "https://bmi.ir/fa/shaba/";
@@ -50,7 +50,8 @@ namespace UpdateMahakPatientsBankAccountInfo
             fields.Add(accountNoKey, "");
             fields.Add("ctl00$MainContent$IBANSkinControl$AccountTypeRadioButtonList", "0");
 
-            var accounts = conn.Query<string>("SELECT TOP 20 [Melli_Acc_No] FROM [MainTable] WHERE Melli_Acc_No<>'';");
+            var fileNos = "4343, 4798, 4369";
+            var accounts = conn.Query<object>($"SELECT {fields} FROM [MainTable] WHERE [File_No] IN ({fileNos});");
             
             foreach (var account in accounts)
             {
