@@ -25,8 +25,8 @@ namespace UpdatePatientsBankAccountInfo.Controllers
             return View(new HomeModel
             {
                 DbFilePath = ".\\محک.accdb",
-                FieldNames = "[File_No], [Name_First] + ' ' + [Name_Last], [Melli_Acc_No], [Melli_Acc_Owner_Name]",
-                FileIds = ""
+                ExcelFilePath = ".\\file.xlsx",
+                BankDelay = 0
             });
         }
 
@@ -34,7 +34,7 @@ namespace UpdatePatientsBankAccountInfo.Controllers
         public IActionResult Report(HomeModel model)
         {
             var extractor = new MelliBankAccountInfoExtractor();
-            extractor.Do(model.DbFilePath, model.FieldNames, model.FileIds.Split(Environment.NewLine));
+            extractor.Do(model);
             return View("Index", model);
         }
 

@@ -1,11 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.IO;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using UpdatePatientsBankAccountInfo.Controllers;
+using UpdatePatientsBankAccountInfo.Utils;
+
 
 namespace UpdatePatientsBankAccountInfo
 {
@@ -13,6 +14,12 @@ namespace UpdatePatientsBankAccountInfo
     {
         public static void Main(string[] args)
         {
+            new MelliBankAccountInfoExtractor().Do(new HomeModel
+            {
+                BankDelay = 0,
+                DbFilePath = ".\\mahak.accdb",
+                ExcelFilePath = ".\\file.xlsx"
+            });
             CreateHostBuilder(args).Build().Run();
         }
 
