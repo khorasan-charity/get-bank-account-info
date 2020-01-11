@@ -14,12 +14,6 @@ namespace UpdatePatientsBankAccountInfo
     {
         public static void Main(string[] args)
         {
-            new MelliBankAccountInfoExtractor().Do(new HomeModel
-            {
-                BankDelay = 0,
-                DbFilePath = ".\\mahak.accdb",
-                ExcelFilePath = ".\\file.xlsx"
-            });
             CreateHostBuilder(args).Build().Run();
         }
 
