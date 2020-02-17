@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdatePatientsBankAccountInfo", "UpdatePatientsBankAccountInfo\UpdatePatientsBankAccountInfo.csproj", "{CEC91AD4-93A7-4A24-BC15-4ACCA89C3F15}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetBankAccountInfo", "GetBankAccountInfo\GetBankAccountInfo.csproj", "{CEC91AD4-93A7-4A24-BC15-4ACCA89C3F15}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
