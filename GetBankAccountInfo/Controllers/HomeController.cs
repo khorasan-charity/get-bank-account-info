@@ -34,7 +34,7 @@ namespace GetBankAccountInfo.Controllers
         public IActionResult Report(HomeModel model)
         {
             var extractor = new MelliBankAccountInfoExtractor();
-            extractor.Do(model);
+            extractor.Do2(model);
             return View("Index", model);
         }
 

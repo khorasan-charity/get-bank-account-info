@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using GetBankAccountInfo.Models;
@@ -32,15 +33,34 @@ namespace GetBankAccountInfo.Controllers
             {
                 Value = _bankAccountInfoExtractor.ProgressValue,
                 Total = _bankAccountInfoExtractor.ProgressTotal,
-                Percent = _bankAccountInfoExtractor.ProgressValue * 100 / (double)_bankAccountInfoExtractor.ProgressTotal 
+                Percent = _bankAccountInfoExtractor.ProgressValue * 100 / Math.Max((double)_bankAccountInfoExtractor.ProgressTotal, 1) 
             };
         }
 
-        [HttpPost("upload-1")]
-        public IActionResult Upload1(IFormFile file)
+        [HttpPost("upload1")]
+        public dynamic Upload1(IFormFile file)
         {
-            _bankAccountInfoExtractor.Do1(file.FileName, "result.xlsx");
-            return Ok();
+            try
+            {
+                const string inputFileName = "wwwroot/tmp/input.xlsx";
+                Directory.CreateDirectory("wwwroot/tmp");
+                System.IO.File.Delete(inputFileName);
+                using var f = System.IO.File.OpenWrite(inputFileName);
+                file.OpenReadStream().CopyTo(f);
+                f.Close();
+                _bankAccountInfoExtractor.Do1(inputFileName, "wwwroot/tmp/result.xlsx");
+                return new
+                {
+                    Url = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/tmp/result.xlsx"
+                };
+            }
+            catch (Exception e)
+            {
+                return new
+                {
+                    Error = e.Message
+                };
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Odbc;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,7 @@ using GetBankAccountInfo.Controllers;
 using HtmlAgilityPack;
 using NPOI;
 using NPOI.HSSF.Util;
+using NPOI.OpenXmlFormats.Dml.Spreadsheet;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 
@@ -44,7 +46,7 @@ namespace GetBankAccountInfo.Utils
                 patient.RealAccountOwnerName = httpClient.GetAccountOwnerName(patient.AccountNo);
             }
 
-            SavePatientsAsExcel(inputExcel, 3, 4, outputExcel, patients);
+            SavePatientsAsExcel(inputExcel, 3, outputExcel, patients);
             
             IsBusy = false;
         }
@@ -75,34 +77,56 @@ namespace GetBankAccountInfo.Utils
             IsBusy = false;
         }
 
-        private void SavePatientsAsExcel(string inputFilename, int copyStyleColumn, int resultColumnNo,
+        private void SavePatientsAsExcel(string inputFilename, int resultColumnNo,
             string outputFilename, List<Patient> patients)
         {
             var patientByFileId = patients.ToDictionary(x => x.FileNo);
             
             var excel = new XSSFWorkbook(inputFilename);
             var sheet = excel.GetSheetAt(0);
+            sheet?.GetRow(0)?.GetCell(resultColumnNo)?.SetCellValue("نام استعلام شده از بانک");
+            var matchStyle = (XSSFCellStyle)excel.CreateCellStyle();
+            matchStyle.FillPattern = FillPattern.SolidForeground;
+            matchStyle.SetFillForegroundColor(new XSSFColor(Color.LightGreen));
             for (var i = 1;; i++)
             {
                 var row = sheet.GetRow(i);
-                var fileId = GetCellValueAsString(row?.GetCell(3));
+                var fileId = GetCellValueAsString(row?.GetCell(0));
                 if (fileId == null)
                     break;
 
                 if (!patientByFileId.ContainsKey(fileId))
                     continue;
                 
-                sheet.SetDefaultColumnStyle(resultColumnNo, row.GetCell(copyStyleColumn).CellStyle);
-                
                 if(GetCellValueAsString(row.GetCell(4)) != patientByFileId[fileId].AccountNo)
                     continue;
                 
-                row.GetCell(resultColumnNo).SetCellValue(patientByFileId[fileId].RealAccountOwnerName);
+                var destCell = row.GetCell(resultColumnNo) ?? row.CreateCell(resultColumnNo);
+                destCell.SetCellType(CellType.String);
+                destCell.SetCellValue(patientByFileId[fileId].RealAccountOwnerName);
                 if (patientByFileId[fileId].RealAccountOwnerName == patientByFileId[fileId].AccountOwnerName)
-                    row.GetCell(resultColumnNo).CellStyle.FillBackgroundColor = new HSSFColor.LightGreen().Indexed;
+                {
+                    //setCellStyle(excel, destCell);
+                    //destCell.CellStyle = matchStyle;
+                    //destCell.CellStyle.FillPattern = FillPattern.SolidForeground;
+                    //destCell.CellStyle.FillForegroundColor = new XSSFColor(Color.LightGreen).Indexed;
+                }
             }
             
-            SaveExcel(excel, outputFilename);
+            SaveAndCloseExcel(excel, outputFilename);
+        }
+        
+        private void setCellStyle(XSSFWorkbook workbook, ICell cell)
+        {
+            var fCellStyle = (XSSFCellStyle)workbook.CreateCellStyle();
+            
+            fCellStyle.FillForegroundXSSFColor = new XSSFColor(Color.Green);
+            fCellStyle.FillPattern = FillPattern.SolidForeground;
+
+            fCellStyle.VerticalAlignment = VerticalAlignment.Center;
+            fCellStyle.Alignment = NPOI.SS.UserModel.HorizontalAlignment.Center;
+          
+            cell.CellStyle = fCellStyle;
         }
 
         private List<Patient> ReadPatientsFromExcel(string filename)
@@ -113,14 +137,14 @@ namespace GetBankAccountInfo.Utils
             for (var i = 1;; i++)
             {
                 var row = sheet.GetRow(i);
-                var fileId = GetCellValueAsString(row?.GetCell(1));
+                var fileId = GetCellValueAsString(row?.GetCell(0));
                 if (fileId == null)
                     break;
                 patients.Add(new Patient
                 {
                     FileNo = fileId,
                     AccountNo = GetCellValueAsString(row?.GetCell(4)),
-                    AccountOwnerName = GetCellValueAsString(row?.GetCell(3)),
+                    AccountOwnerName = GetCellValueAsString(row?.GetCell(2)),
                     RealAccountOwnerName = ""
                 });
             }
@@ -150,7 +174,7 @@ namespace GetBankAccountInfo.Utils
                 row.CopyCell(2, 8).SetCellValue(patientByFileId[value].AccountNo);
             }
             
-            SaveExcel(excel, resultFilename);
+            SaveAndCloseExcel(excel, resultFilename);
         }
 
         private static List<Patient> GetPatientInfo(string dbFilePath, List<string> fileIds)
@@ -221,10 +245,11 @@ namespace GetBankAccountInfo.Utils
                    || (cell.CellType == CellType.Numeric && Math.Abs(cell.NumericCellValue) < 1);
         }
 
-        private static void SaveExcel(XSSFWorkbook excel, string filename)
+        private static void SaveAndCloseExcel(XSSFWorkbook excel, string filename)
         {
             using var file = File.OpenWrite(filename);
             excel.Write(file);
+            excel.Close();
         }
     }
 }
