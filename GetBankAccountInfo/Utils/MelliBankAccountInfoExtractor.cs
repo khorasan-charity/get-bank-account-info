@@ -84,10 +84,8 @@ namespace GetBankAccountInfo.Utils
             
             var excel = new XSSFWorkbook(inputFilename);
             var sheet = excel.GetSheetAt(0);
-            sheet?.GetRow(0)?.GetCell(resultColumnNo)?.SetCellValue("نام استعلام شده از بانک");
-            var matchStyle = (XSSFCellStyle)excel.CreateCellStyle();
-            matchStyle.FillPattern = FillPattern.SolidForeground;
-            matchStyle.SetFillForegroundColor(new XSSFColor(Color.LightGreen));
+            SetCellValue(sheet, 0, resultColumnNo, "نام استعلام شده از بانک");
+            
             for (var i = 1;; i++)
             {
                 var row = sheet.GetRow(i);
@@ -101,21 +99,27 @@ namespace GetBankAccountInfo.Utils
                 if(GetCellValueAsString(row.GetCell(4)) != patientByFileId[fileId].AccountNo)
                     continue;
                 
-                var destCell = row.GetCell(resultColumnNo) ?? row.CreateCell(resultColumnNo);
-                destCell.SetCellType(CellType.String);
-                destCell.SetCellValue(patientByFileId[fileId].RealAccountOwnerName);
-                if (patientByFileId[fileId].RealAccountOwnerName == patientByFileId[fileId].AccountOwnerName)
-                {
-                    //setCellStyle(excel, destCell);
-                    //destCell.CellStyle = matchStyle;
-                    //destCell.CellStyle.FillPattern = FillPattern.SolidForeground;
-                    //destCell.CellStyle.FillForegroundColor = new XSSFColor(Color.LightGreen).Indexed;
-                }
+                SetCellValue(sheet, i, resultColumnNo, patientByFileId[fileId].RealAccountOwnerName);
+                // if (patientByFileId[fileId].RealAccountOwnerName == patientByFileId[fileId].AccountOwnerName)
+                // {
+                //     //setCellStyle(excel, destCell);
+                //     //destCell.CellStyle = matchStyle;
+                //     //destCell.CellStyle.FillPattern = FillPattern.SolidForeground;
+                //     //destCell.CellStyle.FillForegroundColor = new XSSFColor(Color.LightGreen).Indexed;
+                // }
             }
             
             SaveAndCloseExcel(excel, outputFilename);
         }
-        
+
+        private static void SetCellValue(ISheet sheet, int rowNo, int columnNo, string value)
+        {
+            var row = sheet.GetRow(rowNo) ?? sheet.CreateRow(rowNo); 
+            var cell = row.GetCell(columnNo) ?? row.CreateCell(columnNo);
+            cell.SetCellType(CellType.String);
+            cell.SetCellValue(value);
+        }
+
         private void setCellStyle(XSSFWorkbook workbook, ICell cell)
         {
             var fCellStyle = (XSSFCellStyle)workbook.CreateCellStyle();

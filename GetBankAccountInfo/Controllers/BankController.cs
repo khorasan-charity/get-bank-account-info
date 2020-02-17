@@ -43,12 +43,14 @@ namespace GetBankAccountInfo.Controllers
             try
             {
                 const string inputFileName = "wwwroot/tmp/input.xlsx";
+                const string resultFileName = "wwwroot/tmp/result.xlsx";
                 Directory.CreateDirectory("wwwroot/tmp");
                 System.IO.File.Delete(inputFileName);
+                System.IO.File.Delete(resultFileName);
                 using var f = System.IO.File.OpenWrite(inputFileName);
                 file.OpenReadStream().CopyTo(f);
                 f.Close();
-                _bankAccountInfoExtractor.Do1(inputFileName, "wwwroot/tmp/result.xlsx");
+                _bankAccountInfoExtractor.Do1(inputFileName, resultFileName);
                 return new
                 {
                     Url = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/tmp/result.xlsx"
