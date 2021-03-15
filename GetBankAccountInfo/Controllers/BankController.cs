@@ -64,5 +64,38 @@ namespace GetBankAccountInfo.Controllers
                 };
             }
         }
+        
+        public dynamic Upload2(IFormFile file)
+        {
+            try
+            {
+                const string inputFileName = "wwwroot/tmp/input.xlsx";
+                const string resultFileName = "wwwroot/tmp/result.xlsx";
+                Directory.CreateDirectory("wwwroot/tmp");
+                System.IO.File.Delete(inputFileName);
+                System.IO.File.Delete(resultFileName);
+                using var f = System.IO.File.OpenWrite(inputFileName);
+                file.OpenReadStream().CopyTo(f);
+                f.Close();
+                _bankAccountInfoExtractor.Do2(new HomeModel
+                {
+                    DbFilePath = @"C:\Users\Majid\source\repos\get-bank-account-info\GetBankAccountInfo\test\mahak.accdb",
+                    ExcelFilePath = @"C:\Users\Majid\source\repos\get-bank-account-info\GetBankAccountInfo\test\input.xlsx",
+                    BankDelay = 0,
+                    IsDone = false
+                });
+                return new
+                {
+                    Url = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/tmp/result.xlsx"
+                };
+            }
+            catch (Exception e)
+            {
+                return new
+                {
+                    Error = e.Message
+                };
+            }
+        }
     }
 }

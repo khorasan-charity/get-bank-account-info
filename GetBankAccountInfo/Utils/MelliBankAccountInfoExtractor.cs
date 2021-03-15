@@ -193,6 +193,8 @@ namespace GetBankAccountInfo.Utils
             
             conn.Close();
 
+            if (patients == null || patients.Count == 0)
+                return new List<Patient>();
             foreach (var patient in patients)
             {
                 if (string.IsNullOrWhiteSpace(patient.AccountNo))
