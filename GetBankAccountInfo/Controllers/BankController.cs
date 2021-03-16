@@ -65,6 +65,7 @@ namespace GetBankAccountInfo.Controllers
             }
         }
         
+        [HttpPost("upload2")]
         public dynamic Upload2(IFormFile file)
         {
             try
